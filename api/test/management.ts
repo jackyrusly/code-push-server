@@ -15,7 +15,6 @@ import * as restTypes from "../script/types/rest-definitions";
 import * as storage from "../script/storage/storage";
 import * as testUtils from "./utils";
 
-import { AzureStorage } from "../script/storage/azure-storage";
 import { JsonStorage } from "../script/storage/json-storage";
 
 import Permissions = storage.Permissions;
@@ -52,23 +51,18 @@ function managementTests(useJsonStorage?: boolean): void {
 
     return q<void>(null)
       .then(() => {
-        if (process.env.AZURE_MANAGEMENT_URL) {
-          serverUrl = process.env.AZURE_MANAGEMENT_URL;
-          storage = useJsonStorage ? new JsonStorage() : new AzureStorage();
-        } else {
-          // use the middleware defined in DefaultServer
-          var deferred: q.Deferred<void> = q.defer<void>();
+        // use the middleware defined in DefaultServer
+        var deferred: q.Deferred<void> = q.defer<void>();
 
-          defaultServer.start(function (err: Error, app: express.Express, serverStorage: storage.Storage) {
-            if (err) deferred.reject(err);
+        defaultServer.start(function (err: Error, app: express.Express, serverStorage: storage.Storage) {
+          if (err) deferred.reject(err);
 
-            server = app;
-            storage = serverStorage;
-            deferred.resolve(<void>null);
-          }, useJsonStorage);
+          server = app;
+          storage = serverStorage;
+          deferred.resolve(<void>null);
+        }, useJsonStorage);
 
-          return deferred.promise;
-        }
+        return deferred.promise;
       })
       .then(() => {
         return storage.addAccount(account);
@@ -90,7 +84,7 @@ function managementTests(useJsonStorage?: boolean): void {
           if (file.match(/^temp_.*/)) {
             try {
               fs.unlinkSync(getTestResource(file));
-            } catch (err) {}
+            } catch (err) { }
           }
         });
 

@@ -44,15 +44,15 @@ export module Utilities {
   }
 
   export function getDeploymentKeyHash(deploymentKey: string): string {
-    return "deploymentKey:" + deploymentKey;
+    return "codePush:deploymentKey:" + deploymentKey;
   }
 
   export function getDeploymentKeyLabelsHash(deploymentKey: string): string {
-    return "deploymentKeyLabels:" + deploymentKey;
+    return "codePush:deploymentKeyLabels:" + deploymentKey;
   }
 
   export function getDeploymentKeyClientsHash(deploymentKey: string): string {
-    return "deploymentKeyClients:" + deploymentKey;
+    return "codePush:deploymentKeyClients:" + deploymentKey;
   }
 }
 
@@ -89,7 +89,7 @@ class PromisifiedRedisClient {
 
 export class RedisManager {
   private static DEFAULT_EXPIRY: number = 3600; // one hour, specified in seconds
-  private static METRICS_DB: number = 1;
+  private static DB: number = Number(process.env.REDIS_DB || 0);
 
   private _opsClient: redis.RedisClient;
   private _promisifiedOpsClient: PromisifiedRedisClient;
@@ -102,12 +102,17 @@ export class RedisManager {
       const redisConfig = {
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT,
-        auth_pass: process.env.REDIS_KEY,
-        tls: {
-          // Note: Node defaults CA's to those trusted by Mozilla
-          rejectUnauthorized: true,
-        },
       };
+
+      if (process.env.REDIS_KEY) {
+        redisConfig["auth_pass"] = process.env.REDIS_KEY;
+      }
+
+      if (!process.env.REDIS_TLS_DISABLED) {
+        redisConfig["tls"] = {
+          rejectUnauthorized: true,
+        };
+      }
       this._opsClient = redis.createClient(redisConfig);
       this._metricsClient = redis.createClient(redisConfig);
       this._opsClient.on("error", (err: Error) => {
@@ -121,8 +126,9 @@ export class RedisManager {
       this._promisifiedOpsClient = new PromisifiedRedisClient(this._opsClient);
       this._promisifiedMetricsClient = new PromisifiedRedisClient(this._metricsClient);
       this._setupMetricsClientPromise = this._promisifiedMetricsClient
-        .select(RedisManager.METRICS_DB)
-        .then(() => this._promisifiedMetricsClient.set("health", "health"));
+        .select(RedisManager.DB)
+        .then(() => this._promisifiedMetricsClient.set("codePush:health", "health"));
+      this._promisifiedOpsClient.select(RedisManager.DB);
     } else {
       console.warn("No REDIS_HOST or REDIS_PORT environment variable configured.");
     }
@@ -137,7 +143,7 @@ export class RedisManager {
       return q.reject<void>("Redis manager is not enabled");
     }
 
-    return q.all([this._promisifiedOpsClient.ping(), this._promisifiedMetricsClient.ping()]).spread<void>(() => {});
+    return q.all([this._promisifiedOpsClient.ping(), this._promisifiedMetricsClient.ping()]).spread<void>(() => { });
   }
 
   /**
@@ -186,7 +192,7 @@ export class RedisManager {
           return this._promisifiedOpsClient.expire(expiryKey, RedisManager.DEFAULT_EXPIRY);
         }
       })
-      .then(() => {});
+      .then(() => { });
   }
 
   // Atomically increments the status field for the deployment by 1,
@@ -199,7 +205,7 @@ export class RedisManager {
     const hash: string = Utilities.getDeploymentKeyLabelsHash(deploymentKey);
     const field: string = Utilities.getLabelStatusField(label, status);
 
-    return this._setupMetricsClientPromise.then(() => this._promisifiedMetricsClient.hincrby(hash, field, 1)).then(() => {});
+    return this._setupMetricsClientPromise.then(() => this._promisifiedMetricsClient.hincrby(hash, field, 1)).then(() => { });
   }
 
   public clearMetricsForDeploymentKey(deploymentKey: string): Promise<void> {
@@ -214,7 +220,7 @@ export class RedisManager {
           Utilities.getDeploymentKeyClientsHash(deploymentKey)
         )
       )
-      .then(() => {});
+      .then(() => { });
   }
 
   // Promised return value will look something like
@@ -262,7 +268,7 @@ export class RedisManager {
 
         return this._promisifiedMetricsClient.execBatch(batchClient);
       })
-      .then(() => {});
+      .then(() => { });
   }
 
   public removeDeploymentKeyClientActiveLabel(deploymentKey: string, clientUniqueId: string) {
@@ -275,13 +281,13 @@ export class RedisManager {
         const deploymentKeyClientsHash: string = Utilities.getDeploymentKeyClientsHash(deploymentKey);
         return this._promisifiedMetricsClient.hdel(deploymentKeyClientsHash, clientUniqueId);
       })
-      .then(() => {});
+      .then(() => { });
   }
 
   public invalidateCache(expiryKey: string): Promise<void> {
     if (!this.isEnabled) return q(<void>null);
 
-    return this._promisifiedOpsClient.del(expiryKey).then(() => {});
+    return this._promisifiedOpsClient.del(expiryKey).then(() => { });
   }
 
   // For unit tests only
@@ -328,6 +334,6 @@ export class RedisManager {
 
         return this._promisifiedMetricsClient.execBatch(batchClient);
       })
-      .then(() => {});
+      .then(() => { });
   }
 }

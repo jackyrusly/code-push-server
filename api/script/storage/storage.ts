@@ -69,6 +69,7 @@ export interface Deployment {
   name: string;
   key: string;
   package?: Package;
+  appId?: string;
 }
 
 export interface DeploymentInfo {
@@ -86,6 +87,7 @@ export interface PackageHashToBlobInfoMap {
 }
 
 export interface Package {
+  id?: string;
   appVersion: string;
   blobUrl: string;
   description: string;

@@ -12,5 +12,5 @@ export function generateSecureKey(accountId: string): string {
     .replace(/\+/g, "_") // URL-friendly characters
     .replace(/\//g, "-")
     .replace(/^-/, "_") // no '-' in the beginning
-    .concat(accountId);
+    .concat(accountId.split("-")[0]);
 }

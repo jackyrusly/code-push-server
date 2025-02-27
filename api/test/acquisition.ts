@@ -13,7 +13,6 @@ import * as storage from "../script/storage/storage";
 import * as redis from "../script/redis-manager";
 import * as utils from "./utils";
 
-import { AzureStorage } from "../script/storage/azure-storage";
 import { JsonStorage } from "../script/storage/json-storage";
 import { UpdateCheckRequest } from "../script/types/rest-definitions";
 import { SDK_VERSION_HEADER } from "../script/utils/rest-headers";
@@ -36,25 +35,19 @@ describe("Acquisition Rest API", () => {
 
     return q<void>(null)
       .then(() => {
-        if (process.env.AZURE_ACQUISITION_URL) {
-          serverUrl = process.env.AZURE_ACQUISITION_URL;
-          isAzureServer = true;
-          storageInstance = useJsonStorage ? new JsonStorage() : new AzureStorage();
-        } else {
-          var deferred: q.Deferred<void> = q.defer<void>();
+        var deferred: q.Deferred<void> = q.defer<void>();
 
-          defaultServer.start(function (err: Error, app: express.Express, serverStorage: storage.Storage) {
-            if (err) {
-              deferred.reject(err);
-            }
+        defaultServer.start(function (err: Error, app: express.Express, serverStorage: storage.Storage) {
+          if (err) {
+            deferred.reject(err);
+          }
 
-            server = app;
-            storageInstance = serverStorage;
-            deferred.resolve(null);
-          }, useJsonStorage);
+          server = app;
+          storageInstance = serverStorage;
+          deferred.resolve(null);
+        }, useJsonStorage);
 
-          return deferred.promise;
-        }
+        return deferred.promise;
       })
       .then(() => {
         account = utils.makeAccount();
@@ -133,7 +126,7 @@ describe("Acquisition Rest API", () => {
 
   describe("Get /health", () => {
     it("should be healthy if and only if correctly configured", (done) => {
-      var isProductionReady: boolean = storageInstance instanceof AzureStorage && redisManager && redisManager.isEnabled;
+      var isProductionReady: boolean = redisManager && redisManager.isEnabled;
       var expectedStatusCode: number = isProductionReady || isAzureServer ? 200 : 500;
       request(server || serverUrl)
         .get("/health")
@@ -173,10 +166,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(400)
         .end(function (err: any, result: any) {
@@ -189,10 +182,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+          })
         )
         .expect(400)
         .end(function (err: any, result: any) {
@@ -206,11 +199,11 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(400)
         .end(function (err: any, result: any) {
@@ -224,10 +217,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(404)
         .end(function (err: any, result: any) {
@@ -241,10 +234,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(400)
         .end(function (err: any, result: any) {
@@ -258,10 +251,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -279,10 +272,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: "1.0",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: "1.0",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -301,10 +294,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: "1.0+metadata",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: "1.0+metadata",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -324,10 +317,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: "1.0-prerelease",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: "1.0-prerelease",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -345,10 +338,10 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -366,14 +359,14 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-              packageHash: "",
-              isCompanion: "",
-              label: "",
-              clientUniqueId: "",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+            packageHash: "",
+            isCompanion: "",
+            label: "",
+            clientUniqueId: "",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -394,11 +387,11 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-              packageHash: requestParameters.packageHash,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+            packageHash: requestParameters.packageHash,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -416,11 +409,11 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -441,12 +434,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-              packageHash: requestParameters.packageHash,
-              label: "v2",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+            packageHash: requestParameters.packageHash,
+            label: "v2",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -467,12 +460,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              appVersion: requestParameters.appVersion,
-              packageHash: requestParameters.packageHash,
-              label: "v1",
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            appVersion: requestParameters.appVersion,
+            packageHash: requestParameters.packageHash,
+            label: "v1",
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -492,11 +485,11 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -514,11 +507,11 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -535,12 +528,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-              isCompanion: requestParameters.isCompanion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+            isCompanion: requestParameters.isCompanion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -558,12 +551,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-              isCompanion: requestParameters.isCompanion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+            isCompanion: requestParameters.isCompanion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -581,12 +574,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-              isCompanion: requestParameters.isCompanion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+            isCompanion: requestParameters.isCompanion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -606,12 +599,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-              isCompanion: requestParameters.isCompanion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+            isCompanion: requestParameters.isCompanion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -630,12 +623,12 @@ describe("Acquisition Rest API", () => {
       request(server || serverUrl)
         .get(
           "/updateCheck?" +
-            queryString.stringify({
-              deploymentKey: requestParameters.deploymentKey,
-              packageHash: requestParameters.packageHash,
-              appVersion: requestParameters.appVersion,
-              isCompanion: requestParameters.isCompanion,
-            })
+          queryString.stringify({
+            deploymentKey: requestParameters.deploymentKey,
+            packageHash: requestParameters.packageHash,
+            appVersion: requestParameters.appVersion,
+            isCompanion: requestParameters.isCompanion,
+          })
         )
         .expect(200)
         .end(function (err: any, result: any) {
@@ -721,11 +714,11 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -743,12 +736,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -767,12 +760,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -791,12 +784,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -815,12 +808,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -840,12 +833,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -911,11 +904,11 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -933,11 +926,11 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                appVersion: "1.0.1",
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              appVersion: "1.0.1",
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -956,12 +949,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: "0.0.1",
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: "0.0.1",
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -979,12 +972,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: "3.0.0",
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: "3.0.0",
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -1002,12 +995,12 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                packageHash: requestParameters.packageHash,
-                appVersion: requestParameters.appVersion,
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              packageHash: requestParameters.packageHash,
+              appVersion: requestParameters.appVersion,
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -1085,11 +1078,11 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                deploymentKey: requestParameters.deploymentKey,
-                appVersion: "1.0.0",
-                isCompanion: requestParameters.isCompanion,
-              })
+            queryString.stringify({
+              deploymentKey: requestParameters.deploymentKey,
+              appVersion: "1.0.0",
+              isCompanion: requestParameters.isCompanion,
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
@@ -1107,13 +1100,13 @@ describe("Acquisition Rest API", () => {
         request(server || serverUrl)
           .get(
             "/updateCheck?" +
-              queryString.stringify({
-                appVersion: requestParameters.appVersion,
-                deploymentKey: requestParameters.deploymentKey,
-                isCompanion: requestParameters.isCompanion,
-                label: "v1",
-                packageHash: "hash100",
-              })
+            queryString.stringify({
+              appVersion: requestParameters.appVersion,
+              deploymentKey: requestParameters.deploymentKey,
+              isCompanion: requestParameters.isCompanion,
+              label: "v1",
+              packageHash: "hash100",
+            })
           )
           .expect(200)
           .end(function (err: any, result: any) {
