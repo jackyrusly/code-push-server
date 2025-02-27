@@ -69,4 +69,4 @@ CREATE TABLE "account_to_apps_map" (
     PRIMARY KEY ("accountId", "appId")
 );
 
-CREATE INDEX idx_upload_time ON packages ("uploadTime" DESC);
+CREATE INDEX idx_upload_time ON packages ("uploadTime" ASC);
