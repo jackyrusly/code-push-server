@@ -68,3 +68,5 @@ CREATE TABLE "account_to_apps_map" (
     "appId" UUID REFERENCES "apps"("id") ON DELETE CASCADE,
     PRIMARY KEY ("accountId", "appId")
 );
+
+CREATE INDEX idx_upload_time ON packages ("uploadTime" DESC);

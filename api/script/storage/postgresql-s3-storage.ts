@@ -512,6 +512,7 @@ export class PostgreSQLS3Storage implements storage.Storage {
           JOIN packages b
             ON b."deploymentId"=a.id
           WHERE a.key=$1
+          ORDER BY "uploadTime" ASC
         `;
         const queryValues = [deploymentKey];
         const res = await this.postgreSqlPool.query(queryText, queryValues);
