@@ -35,8 +35,8 @@ CREATE TABLE "packages" (
     "manifestBlobUrl" VARCHAR(255),
     "releaseMethod" VARCHAR(255),
     "uploadTime" TIMESTAMPTZ NOT NULL,
-    "label" VARCHAR(255)
-    "originalLabel" VARCHAR(255)
+    "label" VARCHAR(255),
+    "originalLabel" VARCHAR(255),
     "originalDeployment" VARCHAR(255)
 );
 
