@@ -1,6 +1,6 @@
 CREATE TABLE "accounts" (
     "id" UUID PRIMARY KEY,
-    "name" VARCHAR(255) NOT NULL,
+    "name" VARCHAR(255),
     "email" VARCHAR(255) UNIQUE NOT NULL,
     "gitHubId" VARCHAR(255) NOT NULL,
     "createdTime" TIMESTAMPTZ NOT NULL DEFAULT NOW()
